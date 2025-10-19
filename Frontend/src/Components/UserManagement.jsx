@@ -8,7 +8,7 @@ import { UserContext } from '../UserContext'
 function UserManagement() {
     const [formData, setFormData] = useState({ firstName: '', email: '', password: '', gender: '' })
     const navigate = useNavigate()
-    const { isLogin, setIsLogin, loginUser, currentUser, setCurrentUser, token, setToken } = useContext(UserContext)
+    const { isLogin, setIsLogin, loginUser } = useContext(UserContext)
     const [loginData, setLoginData] = useState({ email: '', password: '' })
 
     const handleChange = (event) => {
@@ -23,7 +23,7 @@ function UserManagement() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.post('http://localhost:3000/register', formData)
+            const response = await axios.post('https://lockify-three.vercel.app/register', formData)
             toast.success(response.data.message)
             setFormData({ firstName: '', email: '', password: '', gender: '' })
             setIsLogin(true)
@@ -41,12 +41,8 @@ function UserManagement() {
     const handleLogin = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.post('http://localhost:3000/login', loginData)
+            const response = await axios.post('https://lockify-three.vercel.app/login', loginData)
             toast.success(response.data.message)
-            // localStorage.setItem('token', response.data.token)
-            // localStorage.setItem('user', JSON.stringify(response.data.user))
-            // setCurrentUser(response.data.user)
-            // setToken(response.data.token)
             loginUser(response.data.user, response.data.token);
             setLoginData({ email: '', password: '' })
             setIsLogin(false)

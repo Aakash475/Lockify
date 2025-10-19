@@ -26,12 +26,12 @@ function APIManagement() {
         event.preventDefault();
         try {
             if (isUpdating) {
-                const updated = await axios.put(`http://localhost:3000/update/${formData._id}`, formData, { headers: { Authorization: token } })
+                const updated = await axios.put(`https://lockify-three.vercel.app/update/${formData._id}`, formData, { headers: { Authorization: token } })
                 toast.success(updated.data.message)
                 setPasswords(prev => prev.map(item => item._id === formData._id ? updated.data.entry : item))
                 setIsUpdating(false)
             } else {
-                const response = await axios.post('http://localhost:3000/add', formData, { headers: { Authorization: token } })
+                const response = await axios.post('https://lockify-three.vercel.app/add', formData, { headers: { Authorization: token } })
                 toast.success(response.data.message);
                 setPasswords(prev => [...prev, response.data.entry])
             }
@@ -50,7 +50,7 @@ function APIManagement() {
         }
         const confirmation = confirm("Are You Sure to delete all records?")
         if (confirmation) {
-            const response = await axios.delete('http://localhost:3000/delete', { headers: { Authorization: token } })
+            const response = await axios.delete('https://lockify-three.vercel.app/delete', { headers: { Authorization: token } })
             toast.success(response.data.message);
             setPasswords([])
         }
@@ -58,7 +58,7 @@ function APIManagement() {
     }
 
     useEffect(() => {
-        axios.get('http://localhost:3000/find', { headers: { Authorization: token } })
+        axios.get('https://lockify-three.vercel.app/find', { headers: { Authorization: token } })
             .then(response => {
                 setPasswords(response.data.entries);
             })
@@ -73,7 +73,7 @@ function APIManagement() {
         const confirmation = confirm(`Are You Sure to delete?`)
         if (confirmation) {
             try {
-                const response = await axios.delete(`http://localhost:3000/delete/${id}`, { headers: { Authorization: token } })
+                const response = await axios.delete(`https://lockify-three.vercel.app/delete/${id}`, { headers: { Authorization: token } })
                 toast.success(response.data.message)
                 setPasswords(prev => prev.filter(item => item._id !== id))
             } catch (error) {
@@ -86,7 +86,7 @@ function APIManagement() {
         const confirmation = confirm(`Are You Sure to delete?`)
         if (confirmation) {
             try {
-                const response = await axios.delete(`http://localhost:3000/user/delete/${currentUser.email}`, { headers: { Authorization: token } })
+                const response = await axios.delete(`https://lockify-three.vercel.app/user/delete/${currentUser.email}`, { headers: { Authorization: token } })
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
                 setCurrentUser(null)
