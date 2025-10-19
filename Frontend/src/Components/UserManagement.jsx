@@ -10,6 +10,7 @@ function UserManagement() {
     const navigate = useNavigate()
     const { isLogin, setIsLogin, loginUser } = useContext(UserContext)
     const [loginData, setLoginData] = useState({ email: '', password: '' })
+    const [loading, setLoading] = useState(false)
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -22,6 +23,7 @@ function UserManagement() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setLoading(true)
         try {
             const response = await axios.post('https://lockify-three.vercel.app/register', formData)
             toast.success(response.data.message)
@@ -35,11 +37,14 @@ function UserManagement() {
             } else {
                 toast.error("Registration Failed")
             }
+        } finally {
+            setLoading(false)
         }
     }
 
     const handleLogin = async (event) => {
         event.preventDefault();
+        setLoading(true)
         try {
             const response = await axios.post('https://lockify-three.vercel.app/login', loginData)
             toast.success(response.data.message)
@@ -56,6 +61,8 @@ function UserManagement() {
             } else {
                 toast.error("Server not reachable")
             }
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -83,8 +90,8 @@ function UserManagement() {
                             className="w-full border px-4 py-3 rounded-lg"
                             required
                         />
-                        <button type="submit" className="bg-blue-500 text-white py-3 rounded-lg cursor-pointer">
-                            Login
+                        <button type="submit" className="bg-blue-500 text-white py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" disabled={loading}>
+                            {loading ? "Registering..." : "Register"}
                         </button>
                         <p className="text-center mt-2">
                             Don't have an account?{' '}
@@ -161,8 +168,8 @@ function UserManagement() {
                                 Other
                             </label>
                         </div>
-                        <button type="submit" className="bg-blue-500 text-white py-3 rounded-lg cursor-pointer">
-                            Create an Account
+                        <button type="submit" className="bg-blue-500 text-white py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" disabled={loading}>
+                            {loading?"Creating...":"Create Account"}
                         </button>
                         <p className="text-center mt-2">
                             Already have an account?{' '}
