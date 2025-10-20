@@ -15,6 +15,7 @@ function APIManagement() {
     const token = localStorage.getItem('token')
     const [showPopup, setShowPopup] = useState(false)
     const [showPasswordsPopup, setShowPasswordsPopup] = useState(false);
+    const [loading, setLoading] = useState(false)
 
     const navigate = useNavigate()
 
@@ -25,6 +26,7 @@ function APIManagement() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setLoading(true)
         try {
             if (isUpdating) {
                 const updated = await axios.put(`${import.meta.env.VITE_URL}/update/${formData._id}`, formData, { headers: { Authorization: token } })
@@ -39,6 +41,8 @@ function APIManagement() {
             setFormData({ url: "", password: "", description: '', fileUpload: '' })
         } catch (error) {
             toast.error("Unable to add/update Password, Try after sometimes")
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -51,10 +55,12 @@ function APIManagement() {
         }
         const confirmation = confirm("Are You Sure to delete all records?")
         if (confirmation) {
+            setLoading(true)
             const response = await axios.delete(`${import.meta.env.VITE_URL}/delete`, { headers: { Authorization: token } })
             toast.success(response.data.message);
             setPasswords([])
         }
+        setLoading(false)
     }
 
     useEffect(() => {
@@ -73,11 +79,14 @@ function APIManagement() {
         const confirmation = confirm(`Are You Sure to delete?`)
         if (confirmation) {
             try {
+                setLoading(true)
                 const response = await axios.delete(`${import.meta.env.VITE_URL}/delete/${id}`, { headers: { Authorization: token } })
                 toast.success(response.data.message)
                 setPasswords(prev => prev.filter(item => item._id !== id))
             } catch (error) {
                 toast.error("Failed to Delete Entry")
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -86,6 +95,7 @@ function APIManagement() {
         const confirmation = confirm(`Are You Sure to delete?`)
         if (confirmation) {
             try {
+                setLoading(true)
                 const response = await axios.delete(`${import.meta.env.VITE_URL}/user/delete/${currentUser.email}`, { headers: { Authorization: token } })
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
@@ -95,6 +105,8 @@ function APIManagement() {
                 navigate('/login')
             } catch (error) {
                 toast.error("Failed to Delete Entry")
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -150,8 +162,8 @@ function APIManagement() {
 
                             <hr className="my-2 border-gray-200" />
 
-                            <button onClick={handleDeleteUserByEmail} className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition duration-200 text-sm font-semibold cursor-pointer">
-                                Delete Account
+                            <button onClick={handleDeleteUserByEmail} disabled={loading} className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition duration-200 text-sm font-semibold cursor-pointer">
+                                {loading ? "Deleting..." : "Delete Account"}
                             </button>
                         </div>
                     )}
@@ -174,8 +186,8 @@ function APIManagement() {
                         {formData.fileUpload ? formData.fileUpload.name : "Choose a file"}
                         <input type="file" name="fileUpload" onChange={handleChange} className="hidden" onChange={(e) => setFormData(prev => ({ ...prev, fileUpload: e.target.fileUpload[0] }))} required/>
                     </label> */}
-                    <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
-                        {isUpdating ? "Update Password" : "Add Password"}
+                    <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer" disabled={loading}>
+                        {loading ? isUpdating ? "Updating..." : "Adding" : isUpdating ? "Update Password" : "Add Password"}
                     </button>
                 </form>
 
@@ -227,8 +239,8 @@ function APIManagement() {
                                                 <button onClick={() => handleUpdateById(item._id)} className="bg-green-400 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
                                                     Update
                                                 </button>
-                                                <button onClick={() => handleDeleteById(item._id)} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
-                                                    Delete
+                                                <button onClick={() => handleDeleteById(item._id)} disabled={loading} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
+                                                    {loading ? "Deleting..." : "Delete"}
                                                 </button>
                                             </div>
                                         </div>
