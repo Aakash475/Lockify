@@ -16,6 +16,7 @@ function APIManagement() {
     const [showPopup, setShowPopup] = useState(false)
     const [showPasswordsPopup, setShowPasswordsPopup] = useState(false);
     const [loading, setLoading] = useState(false)
+    const [loadingId, setLoadingId] = useState(null)
 
     const navigate = useNavigate()
 
@@ -79,14 +80,14 @@ function APIManagement() {
         const confirmation = confirm(`Are You Sure to delete?`)
         if (confirmation) {
             try {
-                setLoading(true)
+                setLoadingId(id)
                 const response = await axios.delete(`${import.meta.env.VITE_URL}/delete/${id}`, { headers: { Authorization: token } })
                 toast.success(response.data.message)
                 setPasswords(prev => prev.filter(item => item._id !== id))
             } catch (error) {
                 toast.error("Failed to Delete Entry")
             } finally {
-                setLoading(false)
+                setLoadingId(null)
             }
         }
     }
@@ -187,7 +188,7 @@ function APIManagement() {
                         <input type="file" name="fileUpload" onChange={handleChange} className="hidden" onChange={(e) => setFormData(prev => ({ ...prev, fileUpload: e.target.fileUpload[0] }))} required/>
                     </label> */}
                     <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer" disabled={loading}>
-                        {loading ? isUpdating ? "Updating..." : "Adding" : isUpdating ? "Update Password" : "Add Password"}
+                        {loading ? isUpdating ? "Updating..." : "Adding..." : isUpdating ? "Update Password" : "Add Password"}
                     </button>
                 </form>
 
@@ -207,8 +208,8 @@ function APIManagement() {
                             <div className="flex flex-col flex-shrink-0">
                                 {passwords.length > 1 && (
                                     <div className="flex justify-center mb-6">
-                                        <button onClick={handleDelete} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
-                                            Delete All Passwords
+                                        <button onClick={handleDelete} disabled={loading} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
+                                            {loading ? "Deleting..." : "Delete All Passwords"}
                                         </button>
                                     </div>
                                 )}
@@ -239,8 +240,8 @@ function APIManagement() {
                                                 <button onClick={() => handleUpdateById(item._id)} className="bg-green-400 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
                                                     Update
                                                 </button>
-                                                <button onClick={() => handleDeleteById(item._id)} disabled={loading} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
-                                                    {loading ? "Deleting..." : "Delete"}
+                                                <button onClick={() => handleDeleteById(item._id)} disabled={loadingId === item._id} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
+                                                    {loadingId === item._id ? "Deleting..." : "Delete"}
                                                 </button>
                                             </div>
                                         </div>
