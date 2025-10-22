@@ -17,6 +17,7 @@ function APIManagement() {
     const [showPasswordsPopup, setShowPasswordsPopup] = useState(false);
     const [loading, setLoading] = useState(false)
     const [loadingId, setLoadingId] = useState(null)
+    const [loadingDeleteUser, setLoadingDeleteUser] = useState(null)
 
     const navigate = useNavigate()
 
@@ -96,7 +97,7 @@ function APIManagement() {
         const confirmation = confirm(`Are You Sure to delete?`)
         if (confirmation) {
             try {
-                setLoading(true)
+                setLoadingDeleteUser(true)
                 const response = await axios.delete(`${import.meta.env.VITE_URL}/user/delete/${currentUser.email}`, { headers: { Authorization: token } })
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
@@ -107,7 +108,7 @@ function APIManagement() {
             } catch (error) {
                 toast.error("Failed to Delete Entry")
             } finally {
-                setLoading(false)
+                setLoadingDeleteUser(false)
             }
         }
     }
@@ -166,8 +167,8 @@ function APIManagement() {
 
                             <hr className="my-2 border-gray-200" />
 
-                            <button onClick={handleDeleteUserByEmail} disabled={loading} className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition duration-200 text-sm font-semibold cursor-pointer">
-                                {loading ? "Deleting..." : "Delete Account"}
+                            <button onClick={handleDeleteUserByEmail} disabled={loadingDeleteUser} className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition duration-200 text-sm font-semibold cursor-pointer">
+                                {loadingDeleteUser ? "Deleting..." : "Delete Account"}
                             </button>
                         </div>
                     )}
@@ -190,7 +191,7 @@ function APIManagement() {
                         {formData.fileUpload ? formData.fileUpload.name : "Choose a file"}
                         <input type="file" name="fileUpload" onChange={handleChange} className="hidden" onChange={(e) => setFormData(prev => ({ ...prev, fileUpload: e.target.fileUpload[0] }))} required/>
                     </label> */}
-                    <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer" disabled={loading}>
+                    <button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-200 cursor-pointer">
                         {loading ? isUpdating ? "Updating..." : "Adding..." : isUpdating ? "Update Password" : "Add Password"}
                     </button>
                 </form>
