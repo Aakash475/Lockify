@@ -14,7 +14,7 @@ export const sendVerificationEmail = async (to, token) => {
         }
     });
 
-    const verificationLink = `https://lockify-three.vercel.app/verification?token=${token}`;
+    const verificationLink = `${process.env.VERIFICATION_URL}/verification?token=${token}`;
 
     const mailOptions = {
         from: `"Lockify " <${process.env.EMAIL_USER}>`,
