@@ -72,14 +72,14 @@ function UserManagement() {
             navigate('/passwordmanager')
         } catch (error) {
             if (error.response) {
-                if (error.response.status === 401 && error.response.data.message === "Please verify your email before logging in.") {
+                if (error.response.data.message === "Please verify your email before logging in.") {
                     try {
                         const resendresponse = await axios.post(`${import.meta.env.VITE_URL}/resend-verification`, { email: loginData.email });
                         toast.success(resendresponse.data.message);
                     } catch (err) {
                         toast.error(err.response.data.message);
                     }
-                } else if (error.response.status === 404) {
+                } else if (error.response.status === 401 || error.response.status === 404) {
                     toast.error(error.response.data.message);
                 } else {
                     toast.error("Login Failed");
