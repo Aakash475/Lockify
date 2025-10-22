@@ -5,6 +5,9 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { connectDB, User, Password } from './database_conn.js';
 import { verifyToken } from './authMiddleware.js';
+import crypto from 'crypto'
+import { sendVerificationEmail } from './emailService.js';
+import cron from 'node-cron';
 
 dotenv.config();
 
@@ -15,22 +18,54 @@ app.use(cors());
 
 connectDB();
 
+cron.schedule('* * * * *', async () => {
+    await User.deleteMany({
+        isVerified: false,
+        createdAt: { $lt: new Date(Date.now() - 3600000) }
+    });
+});
+
 // Registration of User
 app.post('/register', async (req, res) => {
     try {
         const { firstName, email, password, gender } = req.body
+        const emailRegex = /^[A-Z0-9._%+-]+@gmail\.(?:com|in)$/i;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: "Email must end with @gmail.com or @gmail.in" });
+        }
         const existingUser = await User.findOne({ email })
         if (existingUser) {
             return res.status(400).json({ message: "Email already exists" })
         }
         const hashedPassword = await bcrypt.hash(password, 10)
-        const newUser = new User({ firstName, email, password: hashedPassword, gender })
+
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+
+        const newUser = new User({ firstName, email, password: hashedPassword, gender, isVerified: false, verificationToken })
         await newUser.save();
-        res.status(201).json({ message: "User Registered Successfully", newEntry: newUser })
+        await sendVerificationEmail(email, verificationToken);
+        res.status(201).json({ message: "User registered successfully. Please verify your email.", newEntry: newUser })
+        await User.deleteMany({ isVerified: false, createdAt: { $lt: new Date(Date.now() - 30000) } });
+
     } catch (error) {
         res.status(500).json({ message: "Internal Server Error" })
     }
 })
+
+// Email Verification
+app.get('/verification', async (req, res) => {
+    try {
+        const { token } = req.query;
+        const user = await User.findOne({ verificationToken: token });
+        if (!user) return res.status(400).send("Invalid or expired token.");
+        user.isVerified = true;
+        user.verificationToken = undefined;
+        await user.save();
+        res.send("Email verified successfully! You can now login.");
+    } catch (error) {
+        res.status(500).send("Internal Server Error");
+    }
+});
 
 // Login User
 app.post('/login', async (req, res) => {
@@ -38,7 +73,10 @@ app.post('/login', async (req, res) => {
         const { email, password } = req.body
         const user = await User.findOne({ email })
         if (!user) {
-            res.status(404).json({ message: "User not found" })
+            return res.status(404).json({ message: "User not found" })
+        }
+        if (!user.isVerified) {
+            return res.status(401).json({ message: "Please verify your email before logging in." });
         }
         const isPasswordValid = await bcrypt.compare(password, user.password)
         if (!isPasswordValid) {
@@ -48,7 +86,7 @@ app.post('/login', async (req, res) => {
         const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })
 
         res.status(200).json({
-            message: "Login successful",
+            message: "Welcome back! Your account is verified.",
             token,
             user: {
                 firstName: user.firstName,
@@ -60,6 +98,29 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 })
+
+// Resend Verification Email
+app.post('/resend-verification', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: "User not found" });
+        if (user.isVerified) return res.status(400).json({ message: "User already verified" });
+
+        // Generate new verification token
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+        user.verificationToken = verificationToken;
+        await user.save();
+
+        await sendVerificationEmail(email, verificationToken);
+
+        res.status(200).json({ message: "Verification email resent successfully." });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to resend verification email." });
+    }
+});
+
 
 // Delete the User
 app.delete('/user/delete/:email', verifyToken, async (req, res) => {

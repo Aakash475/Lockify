@@ -148,8 +148,11 @@ function APIManagement() {
                                     {currentUser?.firstName?.[0]?.toUpperCase() || "U"}
                                 </div>
                                 <div>
-                                    <p className="text-gray-800 font-semibold text-sm">
+                                    <p className="text-gray-800 font-semibold text-sm flex items-center gap-2">
                                         Hello, {currentUser?.firstName?.toUpperCase()}!
+                                        {currentUser?.isVerified && (
+                                            <span className="text-xs text-green-600 font-bold">Verified</span>
+                                        )}
                                     </p>
                                     <p className="text-gray-500 text-xs">{currentUser?.email}</p>
                                 </div>

@@ -26,6 +26,17 @@ const userSchema = new mongoose.Schema({
     gender: {
         type: String,
         required: true,
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verificationToken: {
+        type: String
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 });
 
@@ -49,8 +60,8 @@ const passwordSchema = new mongoose.Schema({
     }
 });
 
-const User = mongoose.model("user",userSchema);
+const User = mongoose.model("user", userSchema);
 
 const Password = mongoose.model("password", passwordSchema);
 
-export {connectDB, Password, User};
+export { connectDB, Password, User };
